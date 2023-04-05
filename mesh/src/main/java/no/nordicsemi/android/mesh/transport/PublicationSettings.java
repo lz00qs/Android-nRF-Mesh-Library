@@ -307,7 +307,7 @@ public class PublicationSettings implements Parcelable {
     /**
      * Encodes the publication period as an interval based on the resolution.
      */
-    int serializePublicationResolution() {
+    public int serializePublicationResolution() {
         switch (publicationResolution) {
             default:
             case RESOLUTION_100_MS:
