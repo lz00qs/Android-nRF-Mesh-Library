@@ -88,7 +88,7 @@ class DefaultNoOperationMessageState extends MeshMessageState {
     /**
      * Parses Access message received
      *
-     * @param message access message received by the acccess layer
+     * @param message access message received by the access layer
      */
     private void parseAccessMessage(final AccessMessage message) {
         final ProvisionedMeshNode node = mInternalTransportCallbacks.getNode(message.getSrc());
@@ -397,6 +397,8 @@ class DefaultNoOperationMessageState extends MeshMessageState {
                         final RelaySettings relaySettings =
                                 new RelaySettings(status.getRelayRetransmitCount(), status.getRelayRetransmitIntervalSteps());
                         node.setRelaySettings(relaySettings);
+                        // Let's update the feature state based on the status message.
+                        node.nodeFeatures.setRelay(status.isEnabled() ? Features.ENABLED : Features.DISABLED);
                     }
                     mInternalTransportCallbacks.updateMeshNetwork(status);
                     mMeshStatusCallbacks.onMeshMessageReceived(message.getSrc(), status);
@@ -410,7 +412,7 @@ class DefaultNoOperationMessageState extends MeshMessageState {
                 } else if (message.getOpCode() == ConfigMessageOpCodes.CONFIG_FRIEND_STATUS) {
                     final ConfigFriendStatus status = new ConfigFriendStatus(message);
                     if (!isReceivedViaProxyFilter(message)) {
-                        node.getNodeFeatures().setFriend(status.isEnable() ? Features.ENABLED : Features.DISABLED);
+                        node.nodeFeatures.setFriend(status.isEnabled() ? Features.ENABLED : Features.DISABLED);
                     }
                     mInternalTransportCallbacks.updateMeshNetwork(status);
                     mMeshStatusCallbacks.onMeshMessageReceived(message.getSrc(), status);
@@ -419,7 +421,10 @@ class DefaultNoOperationMessageState extends MeshMessageState {
                     mInternalTransportCallbacks.updateMeshNetwork(status);
                     mMeshStatusCallbacks.onMeshMessageReceived(message.getSrc(), status);
                 } else if (message.getOpCode() == ConfigMessageOpCodes.CONFIG_GATT_PROXY_STATUS) {
-                    final ConfigProxyStatus status = new ConfigProxyStatus(message);
+                    final ConfigGattProxyStatus status = new ConfigGattProxyStatus(message);
+                    if(!isReceivedViaProxyFilter(message)) {
+                        node.nodeFeatures.setProxy(status.isProxyFeatureEnabled() ? Features.ENABLED : Features.DISABLED);
+                    }
                     mInternalTransportCallbacks.updateMeshNetwork(status);
                     mMeshStatusCallbacks.onMeshMessageReceived(message.getSrc(), status);
                 } else if (message.getOpCode() == ConfigMessageOpCodes.CONFIG_LOW_POWER_NODE_POLLTIMEOUT_STATUS) {
